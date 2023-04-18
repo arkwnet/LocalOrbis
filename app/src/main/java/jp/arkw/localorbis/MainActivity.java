@@ -20,6 +20,9 @@ import android.Manifest;
 public class MainActivity extends AppCompatActivity implements LocationListener {
     LocationManager locationManager;
 
+    private final double orbisLatitude = 34.917239;
+    private final double orbisLongitude = 137.211372;
+
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
         if (isGranted) {
             locationStart();
@@ -51,13 +54,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,}, 1000);
             return;
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 50, this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, this);
     }
 
     @Override
     public void onLocationChanged(Location location) {
+        final double latitude = location.getLatitude();
+        final double longitude = location.getLongitude();
         TextView textViewPosition = findViewById(R.id.text_view_position);
-        textViewPosition.setText("緯度: " + location.getLatitude() + " / 経度: " + location.getLongitude());
+        textViewPosition.setText("緯度: " + latitude + " / 経度: " + longitude);
+        TextView textViewDistance = findViewById(R.id.text_view_distance);
+        int distance = (int) getDistance(latitude, longitude, orbisLatitude, orbisLongitude);
+        textViewDistance.setText(distance + " m");
     }
 
     @Override
@@ -66,5 +74,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onProviderDisabled(String provider) {
+    }
+
+    public static double getDistance(double latitudeA, double longitudeA, double latitudeB, double longitudeB) {
+        Location locationA = new Location("Point A");
+        locationA.setLatitude(latitudeA);
+        locationA.setLongitude(longitudeA);
+        Location locationB = new Location("Point B");
+        locationB.setLatitude(latitudeB);
+        locationB.setLongitude(longitudeB);
+        double distance = locationA.distanceTo(locationB);
+        return distance;
     }
 }
