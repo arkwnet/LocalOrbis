@@ -19,9 +19,7 @@ import android.Manifest;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
     LocationManager locationManager;
-
-    private final double orbisLatitude = 34.917239;
-    private final double orbisLongitude = 137.211372;
+    private final Point orbis = new Point("ループコイル式Hシステム", 34.917239, 137.211372, 50);
 
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
         if (isGranted) {
@@ -64,8 +62,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         TextView textViewPosition = findViewById(R.id.text_view_position);
         textViewPosition.setText("緯度: " + latitude + " / 経度: " + longitude);
         TextView textViewDistance = findViewById(R.id.text_view_distance);
-        int distance = (int) getDistance(latitude, longitude, orbisLatitude, orbisLongitude);
+        int distance = (int) getDistance(latitude, longitude, orbis.getLatitude(), orbis.getLongitude());
         textViewDistance.setText(distance + " m");
+        TextView textViewName = findViewById(R.id.text_view_name);
+        textViewName.setText(orbis.getName());
+        TextView textViewLimit = findViewById(R.id.text_view_limit);
+        textViewLimit.setText("制限速度 " + orbis.getLimit() + "km/h以下");
     }
 
     @Override
