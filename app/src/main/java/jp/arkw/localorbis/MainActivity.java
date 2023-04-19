@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.content.Intent;
 import android.provider.Settings;
@@ -66,8 +67,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         textViewDistance.setText(distance + " m");
         TextView textViewName = findViewById(R.id.text_view_name);
         textViewName.setText(orbis.getName());
-        TextView textViewLimit = findViewById(R.id.text_view_limit);
-        textViewLimit.setText("制限速度 " + orbis.getLimit() + "km/h以下");
+        ImageView imageView = findViewById(R.id.image_view);
+        switch (orbis.getLimit()) {
+            case 50:
+                imageView.setImageResource(R.drawable.limit_50);
+                break;
+            default:
+                imageView.setImageResource(R.drawable.logo);
+                break;
+        }
     }
 
     @Override
