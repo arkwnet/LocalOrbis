@@ -20,7 +20,13 @@ import android.Manifest;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
     LocationManager locationManager;
+    private float speed = 0f;
     private final Point orbis = new Point("ループコイル式Hシステム", 34.917239, 137.211372, 50);
+
+    private ImageView imageView;
+    private TextView textViewPosition;
+    private TextView textViewDistance;
+    private TextView textViewName;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
         if (isGranted) {
@@ -40,6 +46,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } else {
             locationStart();
         }
+        imageView = findViewById(R.id.image_view);
+        textViewPosition = findViewById(R.id.text_view_position);
+        textViewDistance = findViewById(R.id.text_view_distance);
+        textViewName = findViewById(R.id.text_view_name);
+        textViewPosition.setText("緯度: - / 経度: -\n現在速度: - km/h");
     }
 
     private void locationStart(){
@@ -58,16 +69,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onLocationChanged(Location location) {
+        if (location.hasSpeed()) {
+            speed = location.getSpeed() * 3.6f;
+        } else {
+            speed = 0f;
+        }
         final double latitude = location.getLatitude();
         final double longitude = location.getLongitude();
-        TextView textViewPosition = findViewById(R.id.text_view_position);
-        textViewPosition.setText("緯度: " + latitude + " / 経度: " + longitude);
-        TextView textViewDistance = findViewById(R.id.text_view_distance);
+        textViewPosition.setText("緯度: " + latitude + " / 経度: " + longitude + "\n現在速度: " + (int) speed + " km/h");
         int distance = (int) getDistance(latitude, longitude, orbis.getLatitude(), orbis.getLongitude());
         textViewDistance.setText(distance + " m");
-        TextView textViewName = findViewById(R.id.text_view_name);
         textViewName.setText(orbis.getName());
-        ImageView imageView = findViewById(R.id.image_view);
         switch (orbis.getLimit()) {
             case 50:
                 imageView.setImageResource(R.drawable.limit_50);
