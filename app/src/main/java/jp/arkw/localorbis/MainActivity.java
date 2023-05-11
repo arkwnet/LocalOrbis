@@ -5,6 +5,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import android.content.res.AssetFileDescriptor;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -18,15 +22,20 @@ import android.util.Log;
 import android.widget.Toast;
 import android.Manifest;
 
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity implements LocationListener {
     LocationManager locationManager;
     private float speed = 0f;
-    private final Point orbis = new Point("ループコイル式Hシステム", 34.917239, 137.211372, 50);
+    //private final Point orbis = new Point("ループコイル式Hシステム", 34.917239, 137.211372, 50); // 愛知県岡崎市藤川町
+    private final Point orbis = new Point("ループコイル式Hシステム", 34.725382, 137.717995, 50);   // テストデータ (静岡大学浜松キャンパス)
+    private boolean status = false;
 
     private ImageView imageView;
     private TextView textViewPosition;
     private TextView textViewDistance;
     private TextView textViewName;
+    private MediaPlayer mediaPlayer;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
         if (isGranted) {
@@ -69,6 +78,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onLocationChanged(Location location) {
+        if (status == false) {
+            audioPlay("start.wav");
+            status = true;
+        }
         if (location.hasSpeed()) {
             speed = location.getSpeed() * 3.6f;
         } else {
@@ -107,5 +120,41 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         locationB.setLongitude(longitudeB);
         double distance = locationA.distanceTo(locationB);
         return distance;
+    }
+
+    private boolean audioSetup(String filePath) {
+        mediaPlayer = new MediaPlayer();
+        boolean fileCheck = false;
+        try(AssetFileDescriptor afdescripter = getAssets().openFd(filePath)) {
+            mediaPlayer.setDataSource(afdescripter.getFileDescriptor(),
+                    afdescripter.getStartOffset(),
+                    afdescripter.getLength());
+            setVolumeControlStream(AudioManager.STREAM_MUSIC);
+            mediaPlayer.prepare();
+            fileCheck = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileCheck;
+    }
+
+    private void audioPlay(String filePath) {
+        if (mediaPlayer == null) {
+            if (audioSetup(filePath)) {
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(mp -> {
+                    audioStop();
+                });
+            }
+        }
+    }
+
+    private void audioStop() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.reset();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 }
