@@ -18,17 +18,22 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.content.Intent;
 import android.provider.Settings;
-import android.util.Log;
 import android.widget.Toast;
 import android.Manifest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
     LocationManager locationManager;
+    private Timer timer;					//タイマー用
+    private TimerTask timerTask;
+
     private float speed = 0f;
-    //private final Point orbis = new Point("ループコイル式Hシステム", 34.917239, 137.211372, 50); // 愛知県岡崎市藤川町
-    private final Point orbis = new Point("ループコイル式Hシステム", 34.725382, 137.717995, 50);   // テストデータ (静岡大学浜松キャンパス)
+    //private final Point orbis = new Point("ループコイル式Hシステム", 34.917239, 137.211372, 50, 0); // 愛知県岡崎市藤川町
+    private final Point orbis = new Point("ループコイル式Hシステム", 34.725382, 137.717995, 50, 0);   // テストデータ (静岡大学浜松キャンパス)
     private boolean status = false;
 
     private ImageView imageView;
@@ -36,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private TextView textViewDistance;
     private TextView textViewName;
     private MediaPlayer mediaPlayer;
+    ArrayList<String> audioQueue = new ArrayList<>();
 
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
         if (isGranted) {
@@ -60,9 +66,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         textViewDistance = findViewById(R.id.text_view_distance);
         textViewName = findViewById(R.id.text_view_name);
         textViewPosition.setText("緯度: - / 経度: -\n現在速度: - km/h");
+        this.timer = new Timer();
+        this.timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                audioPlay();
+            }
+        };
+        this.timer.schedule(timerTask, 1000, 500);
     }
 
-    private void locationStart(){
+    private void locationStart() {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
         } else {
@@ -79,7 +93,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     public void onLocationChanged(Location location) {
         if (status == false) {
-            audioPlay("start.wav");
+            audioQueue.clear();
+            audioQueue.add("start.wav");
             status = true;
         }
         if (location.hasSpeed()) {
@@ -138,12 +153,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return fileCheck;
     }
 
-    private void audioPlay(String filePath) {
-        if (mediaPlayer == null) {
-            if (audioSetup(filePath)) {
+    private void audioPlay() {
+        if (mediaPlayer == null && audioQueue.size() >= 1) {
+            if (audioSetup(audioQueue.get(0))) {
                 mediaPlayer.start();
                 mediaPlayer.setOnCompletionListener(mp -> {
                     audioStop();
+                    audioQueue.remove(0);
                 });
             }
         }
