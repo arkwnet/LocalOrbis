@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 audioPlay();
             }
         };
-        this.timer.schedule(timerTask, 1000, 500);
+        this.timer.schedule(timerTask, 1000, 100);
     }
 
     private void locationStart() {
@@ -92,11 +92,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onLocationChanged(Location location) {
-        if (status == false) {
-            audioQueue.clear();
-            audioQueue.add("start.wav");
-            status = true;
-        }
         if (location.hasSpeed()) {
             speed = location.getSpeed() * 3.6f;
         } else {
@@ -115,6 +110,66 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             default:
                 imageView.setImageResource(R.drawable.logo);
                 break;
+        }
+        if (status == false) {
+            audioQueue.clear();
+            audioQueue.add("start.wav");
+            if (distance > 1000 && distance <= 2000) {
+                orbis.setStatus(1);
+            } else if (distance > 500 && distance <= 1000) {
+                orbis.setStatus(2);
+            } else if (distance > 100 && distance <= 500) {
+                orbis.setStatus(3);
+            } else if (distance <= 100) {
+                orbis.setStatus(4);
+            }
+            status = true;
+        }
+        if (distance > 1000 && distance <= 2000 && orbis.getStatus() <= 0) {
+            orbis.setStatus(1);
+        }
+        if (distance > 500 && distance <= 1000 && orbis.getStatus() <= 1) {
+            orbis.setStatus(2);
+        }
+        if (distance > 100 && distance <= 500 && orbis.getStatus() <= 2) {
+            orbis.setStatus(3);
+        }
+        if (distance <= 100 && orbis.getStatus() <= 3) {
+            orbis.setStatus(4);
+        }
+        if (distance >= 3000 && orbis.getStatus() >= 1) {
+            orbis.setStatus(0);
+        }
+        if (orbis.getVoice() == false) {
+            int status = orbis.getStatus();
+            if (status >= 1 && status <= 3) {
+                orbis.setVoice(true);
+                audioQueue.add("warn/0.wav");
+                switch (orbis.getStatus()) {
+                    case 1:
+                        audioQueue.add("distance/2000.wav");
+                        break;
+                    case 2:
+                        audioQueue.add("distance/1000.wav");
+                        break;
+                    case 3:
+                        audioQueue.add("distance/500.wav");
+                        break;
+                }
+                audioQueue.add("warn/1.wav");
+                audioQueue.add("type/LH.wav");
+                audioQueue.add("warn/2.wav");
+                audioQueue.add("warn/3.wav");
+                switch (orbis.getLimit()) {
+                    case 50:
+                        audioQueue.add("limit/50.wav");
+                        break;
+                    case 60:
+                        audioQueue.add("limit/60.wav");
+                        break;
+                }
+                audioQueue.add("warn/4.wav");
+            }
         }
     }
 
