@@ -142,8 +142,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
         if (orbis.getVoice() == false) {
             int status = orbis.getStatus();
+            orbis.setVoice(true);
             if (status >= 1 && status <= 3) {
-                orbis.setVoice(true);
                 audioQueue.add("warn/0.wav");
                 switch (orbis.getStatus()) {
                     case 1:
@@ -169,6 +169,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         break;
                 }
                 audioQueue.add("warn/4.wav");
+            } else if (status == 4) {
+                audioQueue.add("distance/100.wav");
             }
         }
     }
